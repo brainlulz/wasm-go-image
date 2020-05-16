@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Go wasm</title>
+</head>
+
+<body>
+
+  <script src="wasm_exec.js"></script>
+
+  <script>
+    if (!WebAssembly.instantiateStreaming) {
+      // polyfill
+      WebAssembly.instantiateStreaming = async (resp, importObject) => {
+        const source = await (await resp).arrayBuffer();
+        return await WebAssembly.instantiate(source, importObject);
+      };
+    }
+
+    const go = new Go();
+    let mod, inst;
+    WebAssembly.instantiateStreaming(fetch("lib.wasm"), go.importObject).then(
+      async result => {
+        mod = result.module;
+        inst = result.instance;
+        memoryBytes = new Uint8Array(inst.exports.mem.buffer)
+        await go.run(inst);
+      }
+    );
+  </script>
+
+  <input type="file" id="uploader" />
+  <div>
+    <image id="sourceImg" class="image" style="width: 500px;" />
+    <image id="targetImg" class="image" />
+  </div>
+
+  <script>
+    let imageType;
+
+    document.getElementById('uploader').addEventListener('change', function () {
+      let reader = new FileReader();
+      reader.onload = (ev) => {
+        bytes = new Uint8Array(ev.target.result);
+        WASMGo.loadImage(bytes);
+        let blob = new Blob([bytes], {
+          'type': imageType
+        });
+        document.getElementById("sourceImg").src = URL.createObjectURL(blob);
+      };
+      imageType = this.files[0].type;
+      reader.readAsArrayBuffer(this.files[0]);
+    });
+  </script>
+</body>
+
+</html>
