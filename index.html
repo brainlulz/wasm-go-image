@@ -36,28 +36,37 @@ license that can be found in the LICENSE file.
     );
   </script>
 
-  <input type="file" id="uploader" />
+  <!-- <input type="file" id="uploader" /> -->
+  <input type="identicon" id="identicon" />
+  <button onclick="loadIcon()">Generate</button>
   <div>
-    <image id="sourceImg" class="image" style="width: 500px;" />
+    <!-- <image id="sourceImg" class="image" style="width: 500px;" /> -->
     <image id="targetImg" class="image" />
   </div>
 
   <script>
-    let imageType;
+    function loadIcon() {
+      const value = document.getElementById('identicon').value
+      const buf = WASMGo.identicon(value)
+      let blob = new Blob([buf], {
+        'type': "png"
+      });
+      document.getElementById('targetImg').src = URL.createObjectURL(blob);
+    }
 
-    document.getElementById('uploader').addEventListener('change', function () {
-      let reader = new FileReader();
-      reader.onload = (ev) => {
-        bytes = new Uint8Array(ev.target.result);
-        WASMGo.loadImage(bytes);
-        let blob = new Blob([bytes], {
-          'type': imageType
-        });
-        document.getElementById("sourceImg").src = URL.createObjectURL(blob);
-      };
-      imageType = this.files[0].type;
-      reader.readAsArrayBuffer(this.files[0]);
-    });
+    // document.getElementById('uploader').addEventListener('change', function () {
+    //   let reader = new FileReader();
+    //   reader.onload = (ev) => {
+    //     bytes = new Uint8Array(ev.target.result);
+    //     WASMGo.loadImage(bytes);
+    //     let blob = new Blob([bytes], {
+    //       'type': imageType
+    //     });
+    //     document.getElementById("sourceImg").src = URL.createObjectURL(blob);
+    //   };
+    //   imageType = this.files[0].type;
+    //   reader.readAsArrayBuffer(this.files[0]);
+    // });
   </script>
 </body>
 
